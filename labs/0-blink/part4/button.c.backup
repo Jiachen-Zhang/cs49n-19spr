@@ -108,13 +108,27 @@ void delay(unsigned ticks) {
         asm("add r1, r1, #0");
 }
 
+/*
+void reboot(void) {
+    const int PM_RSTC = 0x2010001c;
+    const int PM_WDOG = 0x20100024;
+    const int PM_PASSWORD = 0x5a000000;
+    const int PM_RSTC_WRCFG_FULL_RESET = 0x00000020;
+    int i;
+    for(i = 0; i < 100000; i++)
+         dummy(i);
+    PUT32(PM_WDOG, PM_PASSWORD | 1);
+    PUT32(PM_RSTC, PM_PASSWORD | PM_RSTC_WRCFG_FULL_RESET);
+    while(1);
+}
+*/
+
 // when you run should blink 10 times. will have to restart the pi by pulling the usb connection out.
 void notmain(void) {
     int led_in = 20;
     int led_out = 21;
     gpio_set_output(led_out);
     gpio_set_input(led_in);
-    volatile unsigned tmp = 1 << led_in;
 
     // event detected
     volatile unsigned *gpio_eds0 = (volatile unsigned *)(GPIO_BASE + 0x40); // gpio event detect status register0
@@ -126,21 +140,26 @@ void notmain(void) {
     volatile unsigned *gpio_len0 = (volatile unsigned *)(GPIO_BASE + 0x70);
     //gio_set_output(12);
     while(1) {
-        *gpio_eds0 = tmp;
+        volatile unsigned tmp = 1 << led_in;
         // high level detected
         if (*gpio_eds0 == tmp && *gpio_hen0 == tmp) {
             *gpio_hen0 = 0 << led_in;   // disable high detected
             *gpio_len0 = 1 << led_in;   // enable low detected
             gpio_set_on(led_out);       // turn on led
-        } else
-        // low level detected
-        if (*gpio_eds0 == tmp && *gpio_len0 == tmp) {
-            *gpio_len0 = 0 << led_in;   // disable low detected
-            *gpio_hen0 = 1 << led_in;   // enable hign detected
-            gpio_set_off(led_out);
+            *gpio_eds0 = 0;
         }
-        *gpio_eds0 = 0;
+        else
+         // low level detected
+        if (*gpio_eds0 == tmp && *gpio_len0 == tmp) {
+              *gpio_len0 = 0 << led_in;   // disable low detected
+              *gpio_hen0 = 1 << led_in;   // enable hign detected
+              gpio_set_off(led_out);
+              *gpio_eds0 = 0;
+        }
         delay(1000000);
+        //gpio_set_off(led_out);
+        *gpio_eds0 = tmp;
     }
+
 }
 

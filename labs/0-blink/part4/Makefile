@@ -1,6 +1,6 @@
 # makefile based on scott mcpeak's grad school page :)
 # 	http://scottmcpeak.com/autodepend/autodepend.html
-NAME=blink
+NAME=button
 
 # start.o must be first!
 OBJS = start.o $(NAME).o
