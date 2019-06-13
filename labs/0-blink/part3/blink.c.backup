@@ -23,10 +23,7 @@
 
 // these are in start.s
 void put32(volatile void *addr, unsigned v);
-//void PUT32(int addr, unsigned v);
 unsigned get32(const volatile void *addr);
-//unsigned GET32(int addr);
-void dumpy(int addr);
 
 // see broadcomm documents for magic addresses.
 #define GPIO_BASE 0x20200000
@@ -41,25 +38,26 @@ volatile unsigned *gpio_clr0  = (volatile unsigned *)(GPIO_BASE + 0x28);
 void gpio_set_output(unsigned pin) {
     // use gpio_fsel0
     int FSEL_offset = pin / 10;
+    volatile unsigned *gpio_fsel;
+    gpio_fsel0 += 4;
+    *gpio_fsel0 &= ~(0b111 << ((pin % 10) * 3));
+    *gpio_fsel0 |= 0b001 << ((pin % 10) * 3);
 
-    //*gpio_fsel1 = (0b001 << 18);
-    volatile unsigned *gpio_fsel; 
-    switch (FSEL_offset) {
-        case 0:
-            gpio_fsel = gpio_fsel0;
-            break;
-        case 1:
-            gpio_fsel = gpio_fsel1;
-            break;
-        case 2:
-            gpio_fsel = gpio_fsel2;
-            break;
-        default:
-            gpio_fsel = gpio_fsel0;
+   /* switch (FSEL_offset) {
+    case 0:
+      *gpio_fsel = *gpio_fsel0;
+      break;
+    case 1:
+      *gpio_fsel = *gpio_fsel1;
+      break;
+    case 2:
+      *gpio_fsel = *gpio_fsel2;
+      break;
     }
+    gpio_fsel += 0x04;
     *gpio_fsel &= ~(0b111 << ((pin % 10) * 3)); 
     *gpio_fsel |= 0b001 << ((pin % 10) * 3);  // set the pin outset <pin> on.
-    
+    */
 }
 
 void gpio_set_on(unsigned pin) {
@@ -79,19 +77,17 @@ void gpio_set_off(unsigned pin) {
 void gpio_set_input(unsigned pin) {
     // use gpio_fsel0 
     int FSEL_offset = pin / 10;
-    volatile unsigned *gpio_fsel;
+    unsigned *gpio_fsel;
     switch (FSEL_offset) {
-        case 0:
-            gpio_fsel = gpio_fsel0;
-            break;
-        case 1:
-            gpio_fsel = gpio_fsel1;
-            break;
-        case 2:
-            gpio_fsel = gpio_fsel2;
-            break;
-        default:
-            gpio_fsel = gpio_fsel0;
+    case 0:
+      gpio_fsel = gpio_fsel0;
+      break;
+    case 1:
+      gpio_fsel = gpio_fsel1;
+      break;
+    case 2:
+      gpio_fsel = gpio_fsel2;
+      break;
     }
     *gpio_fsel &= ~(0b111 << ((pin % 10) * 3)); 
     *gpio_fsel |= 0b000 << ((pin % 10) * 3);  // set the pin outt <pin> to <v> (v \in {0,1})
@@ -122,18 +118,13 @@ void reboot(void) {
     while(1);
 }
 */
-
 // when you run should blink 10 times. will have to restart the pi by pulling the usb connection out.
 void notmain(void) {
     int led = 16;
-    int led2 = 20;
     gpio_set_output(led);
-    gpio_set_output(led2);
     for(int i = 0; i < 10; i++) {
         gpio_set_on(led);
-        gpio_set_off(led2);
         delay(1000000);
-        gpio_set_on(led2);
         gpio_set_off(led);
         delay(1000000);
     }
