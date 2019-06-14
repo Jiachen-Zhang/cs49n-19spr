@@ -20,7 +20,7 @@ all: $(NAME).bin
 # if this does not work: you need to add the cs49n/bin directory (holding my-install) 
 # into your path.
 run:
-	python ../rpi-install-wsl.py $(NAME).bin
+	python rpi-install-wsl.py $(NAME).bin
 
 $(NAME).bin: memmap $(OBJS) 
 	$(LD) $(OBJS) -T memmap -o $(NAME).elf 
