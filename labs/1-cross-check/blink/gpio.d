@@ -1,3 +1,3 @@
-gpio.o: gpio.c gpio.h
-gpio.c:
-gpio.h:
+../blink/gpio.o: ../blink/gpio.c ../blink/gpio.h
+../blink/gpio.c:
+../blink/gpio.h:

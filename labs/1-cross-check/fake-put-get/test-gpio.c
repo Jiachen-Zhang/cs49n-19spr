@@ -10,8 +10,10 @@
 void run_test(const char *name, void (*fp)(unsigned), int ntrials) {
     printf("testing: <%s>\n", name);
     // test pins 0..32, then a bunch of random.
-    for(int i = 0; i < 32; i++) 
-        fp(i);
+    for(int i = 0; i < 32; i++) {
+//       printf("i = %d\n", i);
+       fp(i);
+    } 
     for(int i = 0; i < ntrials; i++) 
         fp(random());
 }
@@ -31,7 +33,6 @@ int main(int argc, char *argv[]) {
     srandom(49);
     // make sure that everyone has the same random.
     assert(89789692 == random());
-
 #   define N 128
     if(argc > 2) {
         fprintf(stderr, "usage error: test-gpio [0..3]\n");
@@ -40,9 +41,9 @@ int main(int argc, char *argv[]) {
     int part = 0;
     if(argv[1])
         part = atoi(argv[1]);
-
+  //  printf("test, part = %d\n", part);
     switch(part) {
-    case 0: test_gpio_set_output(N); break;
+    case 0:test_gpio_set_output(N); break;
     case 1: test_gpio_set_on(N); break;
     case 2: test_gpio_set_off(N); break;
     case 3:

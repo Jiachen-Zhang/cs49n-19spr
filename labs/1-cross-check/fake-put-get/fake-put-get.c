@@ -55,6 +55,7 @@ typedef struct {
     unsigned val;
 } mem_t;
 
+
 // don't change print_write/print_read so we can compare to everyone.
 static void print_write(mem_t *m) {
     printf("\tWRITE:addr=%p, val=%u\n", m->addr, m->val);
@@ -77,11 +78,20 @@ static void print_read(mem_t *m) {
  *  - get32
  *  - put32
  */
-
+#define SIZE  128   // same as size in test_put_get.c
+// define an array of struct to implemente the fake memory
+static mem_t Memory[SIZE];
+static int cnt = 0; // sum of memory used
+static int i = 0;
 // lookup <addr> in your memory implementation.  Returns the associated <mem_t>
 // or 0 if there is none (null).
 static mem_t* lookup(volatile void *addr) {
-    unimplemented();
+    for (i = 0; i < cnt; i++) {
+        if ((unsigned int*)Memory[i].addr == (unsigned int*)addr) {
+            return &Memory[i];
+        }
+    }
+    return (mem_t*)0;
 }
 
 // insert (<addr>, <val>) into your fake memory.  
@@ -89,7 +99,12 @@ static mem_t* lookup(volatile void *addr) {
 //   - before: <addr> is not in fake memory.
 //   - after: <addr> is in fake memory and lookup returns the corect <val>
 static mem_t *insert(volatile void *addr, unsigned val) {
-    unimplemented();
+//    assert( lookup(addr) == 0);
+    mem_t tmp = {addr, val};
+    Memory[cnt++] = tmp;
+ //   printf("cnt = %d\n", cnt);
+  //  assert( lookup(addr)->addr == addr);
+    return lookup(addr);
 }
 
 // return the value associated with <addr>.  if this <addr> has not been written
@@ -97,7 +112,16 @@ static mem_t *insert(volatile void *addr, unsigned val) {
 //
 // before you return, call print_read on the mem_t associated with <addr>.
 unsigned get32(volatile void *addr) {
-    unimplemented();
+    printf("get32(), addr = %p\n", addr);
+    mem_t *find = lookup(addr);
+    if ((size_t)find == 0) {
+      //  printf("Not find, will insert an random number into it\n");
+        find =  insert(addr, random());
+    } else {
+        //printf(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Have find\n");
+    }
+    print_read(find);
+    return find -> val;
 }
 
 // write (<addr>, <val>) into your fake memory.  if the <addr> is already in fake
@@ -105,5 +129,20 @@ unsigned get32(volatile void *addr) {
 // 
 // before you return, call print_write on the mem_t associated with <addr>.
 void put32(volatile void *addr, unsigned val) {
-    unimplemented();
+    //printf("put32(), addr = %p, val = %d\n", addr, val);
+    
+    mem_t tmp = {addr, val};
+//    printf("*tmp = %p, tmp.addr = %p, tmp.val = %d\n ", &tmp, tmp.addr, tmp.val);
+    
+    mem_t *find = lookup(addr);
+//    printf("find res = %ld\n", (size_t)find);
+    if ( (size_t)find == 0 ) {
+  //      printf("Not find, will insert into memory\n");
+        insert(addr, val);
+    } else {
+//        printf(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Have found !!! The value will be modified\n");
+        find->val = val;
+    }
+    print_write(&tmp);
+    return;
 }
